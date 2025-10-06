@@ -1,4 +1,3 @@
-# filepath: d:\Pedro\Docs\Sobreposition\crop.py
 import os
 from pydub import AudioSegment
 import csv
@@ -42,10 +41,10 @@ def cortar_audios(pasta_entrada, pasta_saida, labels):
         with open(caminho_csv, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for linha in reader:
-                label = linha['label'].strip()
+                label = linha.get('label', '').strip() if linha.get('label') else ''
                 
                 # Verifica se a label está na lista desejada
-                if label not in labels:
+                if not label or label not in labels:
                     continue
                     
                 try:
@@ -166,5 +165,8 @@ def cortar_background(pasta_entrada, pasta_saida):
             continue
 
 if __name__ == "__main__":
-    # cortar_audios('J:\\ALL_DATA', 'J:\\croped_vocal', ['p', 'l', 'k', 'g', 'r', 'e', 's'])
-    cortar_background('J:\\ALL_DATA', 'J:\\croped_vocal')
+    cortar_audios(r"C:\Users\EthogenesisLab\Downloads\Feitos_Feitos-20251005T222933Z-1-001\Feitos_Feitos",
+                  r"J:\\croped_vocal_adult",
+                  ['p', 'l', 'k', 'g', 'r', 'e', 's'])
+    cortar_background(r"C:\Users\EthogenesisLab\Downloads\Feitos_Feitos-20251005T222933Z-1-001\Feitos_Feitos",
+                      r"J:\\croped_vocal_adult")

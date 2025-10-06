@@ -240,7 +240,7 @@ def gerar_relatorio_detalhado(pasta_entrada, pasta_saida=None):
 
 if __name__ == "__main__":
     # Exemplo de uso
-    pasta_dados = r'C:\Users\EthogenesisLab\Documents\Train_Sobreposition_PheePhee_PheeTsik_TrillTrill\data\wav'  # Altere para sua pasta
+    pasta_dados = r'C:\Users\EthogenesisLab\Documents\Train_Sobreposition_PheePhee_PheeTsik_TrillTrill\data\wav_created'  # Altere para sua pasta
     
     print("Iniciando análise de áudios anotados...")
     analisar_audios_anotados(pasta_dados)

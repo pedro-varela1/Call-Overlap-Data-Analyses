@@ -218,10 +218,10 @@ def gerar_espectrograma(caminho_audio, pasta_saida, nome_base):
 if __name__ == "__main__":
     pares_desejados = [["l", "l"], ["p", "p"], ["k", "p"]]
     criar_pares_com_overlap_e_espectrograma(
-        'J:\\croped_vocal', 
-        'J:\\overlap_especificos', 
+        'J:\\croped_vocal_adult_baby', 
+        'J:\\overlap_especificos_adult_baby', 
         pares_desejados, 
-        taxa_reducao_min=0.14,
+        taxa_reducao_min=0.15,
         taxa_reducao_max=0.2,
         n=1000
     )

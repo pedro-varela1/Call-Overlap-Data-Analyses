@@ -58,11 +58,11 @@ def criar_audios_60s(pasta_overlaps, pasta_background, pasta_saida, n_vocalizaco
     
     # Calcular quantas vocalizações cabem em 60s e quantos áudios precisamos
     duracao_alvo_ms = 60 * 1000  # 60 segundos em ms
-    intervalo_min_ms = 1000  # 1 segundo
+    intervalo_min_ms = 500  # 500 ms
     intervalo_max_ms = 2000  # 2 segundos
-    
-    # Estimar duração média das vocalizações (vamos assumir ~1.5s como estimativa)
-    duracao_media_vocalizacao_ms = 1500
+
+    # Estimar duração média das vocalizações (vamos assumir ~1.2s como estimativa)
+    duracao_media_vocalizacao_ms = 1200
     intervalo_medio_ms = (intervalo_min_ms + intervalo_max_ms) / 2
     
     # Calcular quantas vocalizações cabem aproximadamente em 60s
@@ -306,8 +306,8 @@ def obter_segmento_background_aleatorio(arquivos_background, duracao_ms):
 
 if __name__ == "__main__":
     criar_audios_60s(
-        pasta_overlaps='J:\\overlap_especificos',
-        pasta_background='J:\\croped_vocal\\u',
-        pasta_saida='J:\\audios_60s',
+        pasta_overlaps='J:\\overlap_especificos_adult_baby',
+        pasta_background='J:\\croped_vocal_adult_baby\\u',
+        pasta_saida='J:\\audios_60s_adult_baby',
         n_vocalizacoes=1000
     )
