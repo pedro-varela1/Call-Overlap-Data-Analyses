@@ -12,7 +12,7 @@ from itertools import combinations
 # Ignorar warnings específicos do Librosa
 warnings.filterwarnings("ignore", category=UserWarning)
 
-def criar_pares_com_overlap_e_espectrograma(pasta_labels, pasta_saida, pares_vocalizacoes, taxa_reducao_min=0.01, taxa_reducao_max=0.2, n=1000):
+def criar_pares_com_overlap_e_espectrograma(pasta_labels, pasta_saida, pares_vocalizacoes, taxa_reducao=None, n=1000):
     """
     Cria pares de áudios com sobreposição baseados em tipos de vocalizações específicos
     
@@ -20,10 +20,15 @@ def criar_pares_com_overlap_e_espectrograma(pasta_labels, pasta_saida, pares_voc
         pasta_labels (str): Pasta com os áudios cortados das labels (cada label em sua pasta)
         pasta_saida (str): Pasta para salvar os áudios combinados e espectrogramas
         pares_vocalizacoes (list): Lista de pares de vocalizações ex: [["l", "l"],["p","p"],["k","p"]]
-        taxa_reducao_min (float): Taxa mínima de redução de amplitude (default: 0.01)
-        taxa_reducao_max (float): Taxa máxima de redução de amplitude (default: 0.2)
+        taxa_reducao (dict): Dicionário com taxas de redução por label. 
+                            Keys: labels (ex: "p", "l", "k")
+                            Values: tuples (min, max) ou None para não aplicar redução
+                            Exemplo: {"p": (0.15, 0.2), "l": (0.1, 0.15), "k": None}
         n (int): Número máximo de overlaps para cada tipo de vocalização (default: 1000)
     """
+    # Inicializar taxa_reducao como dict vazio se None
+    if taxa_reducao is None:
+        taxa_reducao = {}
     # Garantir que a pasta de saída existe
     os.makedirs(pasta_saida, exist_ok=True)
     
@@ -83,14 +88,14 @@ def criar_pares_com_overlap_e_espectrograma(pasta_labels, pasta_saida, pares_voc
             arquivos_usados.add(arq1)
             arquivos_usados.add(arq2)
             
-            # Processar o overlap com taxa de redução aleatória
-            processar_overlap(arq1, arq2, pasta_overlap, taxa_reducao_min, taxa_reducao_max)
+            # Processar o overlap com taxa de redução específica do label2
+            processar_overlap(arq1, arq2, pasta_overlap, label2, taxa_reducao)
     
     # Criar pasta 'w' com overlaps aleatórios não utilizados
     if n > 0:
-        criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, taxa_reducao_min, taxa_reducao_max, n)
+        criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, taxa_reducao, n)
 
-def criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, taxa_reducao_min, taxa_reducao_max, n):
+def criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, taxa_reducao, n):
     """
     Cria overlaps aleatórios usando apenas arquivos que não foram utilizados anteriormente
     """
@@ -99,10 +104,12 @@ def criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, 
     
     # Coletar todos os arquivos disponíveis que não foram usados
     arquivos_disponiveis = []
-    for arquivos in arquivos_por_label.values():
+    arquivos_por_arquivo = {}  # Mapeia arquivo para sua label
+    for label, arquivos in arquivos_por_label.items():
         for arquivo in arquivos:
             if arquivo not in arquivos_usados:
                 arquivos_disponiveis.append(arquivo)
+                arquivos_por_arquivo[arquivo] = label
     
     print(f"Arquivos disponíveis para overlaps aleatórios: {len(arquivos_disponiveis)}")
     
@@ -122,28 +129,38 @@ def criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, 
     
     # Processar cada par selecionado
     for arq1, arq2 in pares_selecionados:
-        processar_overlap(arq1, arq2, pasta_outros, taxa_reducao_min, taxa_reducao_max)
+        # Usar a label do segundo arquivo para determinar a taxa de redução
+        label2 = arquivos_por_arquivo[arq2]
+        processar_overlap(arq1, arq2, pasta_outros, label2, taxa_reducao)
 
-def processar_overlap(arq1, arq2, pasta_destino, taxa_reducao_min, taxa_reducao_max):
+def processar_overlap(arq1, arq2, pasta_destino, label2, taxa_reducao):
     """
-    Processa um único overlap entre dois arquivos de áudio com taxa de redução aleatória
+    Processa um único overlap entre dois arquivos de áudio com taxa de redução baseada na label
+    
+    Args:
+        arq1 (str): Caminho do primeiro arquivo de áudio
+        arq2 (str): Caminho do segundo arquivo de áudio (será reduzido)
+        pasta_destino (str): Pasta de destino para salvar os arquivos
+        label2 (str): Label do segundo arquivo (para determinar taxa de redução)
+        taxa_reducao (dict): Dicionário com taxas de redução por label
     """
     try:
         # Carregar os áudios
         audio1 = AudioSegment.from_wav(arq1)
         audio2 = AudioSegment.from_wav(arq2)
         
-        # Gerar taxa de redução aleatória dentro da faixa especificada
-        taxa_reducao = random.uniform(taxa_reducao_min, taxa_reducao_max)
-        
-        # Reduzir a amplitude do segundo áudio
-        reducao_db = 20 * np.log10(taxa_reducao)  # Conversão linear para dB
-
-        # Selecionar aleatoriamente qual áudio terá a redução
-        if random.choice([True, False]):
-            audio1 = audio1 + reducao_db
-        else:
+        # Verificar se deve aplicar redução para esta label
+        if label2 in taxa_reducao and taxa_reducao[label2] is not None:
+            taxa_reducao_min, taxa_reducao_max = taxa_reducao[label2]
+            # Gerar taxa de redução aleatória dentro da faixa especificada
+            taxa_red = random.uniform(taxa_reducao_min, taxa_reducao_max)
+            # Reduzir a amplitude do segundo áudio
+            reducao_db = 20 * np.log10(taxa_red)  # Conversão linear para dB
             audio2 = audio2 + reducao_db
+            taxa_str = f"{taxa_red:.3f}".replace('.', 'p')  # Usar a taxa específica com 3 casas decimais
+        else:
+            # Não aplicar redução
+            taxa_str = "noReduc"
         
         # Calcular a duração necessária para cobrir ambos os áudios
         duracao1 = len(audio1)
@@ -168,7 +185,6 @@ def processar_overlap(arq1, arq2, pasta_destino, taxa_reducao_min, taxa_reducao_
         # Gerar nome do arquivo de saída
         nome1 = os.path.splitext(os.path.basename(arq1))[0]
         nome2 = os.path.splitext(os.path.basename(arq2))[0]
-        taxa_str = f"{taxa_reducao:.3f}".replace('.', 'p')  # Usar a taxa específica com 3 casas decimais
         nome_base = f"{nome1}_{nome2}_{taxa_str}"
         nome_audio = nome_base + ".wav"
         caminho_audio = os.path.join(pasta_destino, nome_audio)
@@ -217,11 +233,19 @@ def gerar_espectrograma(caminho_audio, pasta_saida, nome_base):
 
 if __name__ == "__main__":
     pares_desejados = [["l", "l"], ["p", "p"], ["k", "p"]]
+    
+    # Definir taxas de redução por label
+    taxas_reducao = {
+        "p": (0.15, 0.2),
+        "l": (0.7, 0.8),
+        "k": (0.6, 0.7)
+        # Labels não incluídas ou com valor None não terão redução aplicada
+    }
+    
     criar_pares_com_overlap_e_espectrograma(
         'J:\\croped_vocal_adult_baby', 
         'J:\\overlap_especificos_adult_baby', 
         pares_desejados, 
-        taxa_reducao_min=0.15,
-        taxa_reducao_max=0.2,
+        taxa_reducao=taxas_reducao,
         n=1000
     )
