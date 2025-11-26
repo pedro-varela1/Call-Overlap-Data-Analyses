@@ -88,8 +88,12 @@ def criar_pares_com_overlap_e_espectrograma(pasta_labels, pasta_saida, pares_voc
             arquivos_usados.add(arq1)
             arquivos_usados.add(arq2)
             
-            # Processar o overlap com taxa de redução específica do label2
-            processar_overlap(arq1, arq2, pasta_overlap, label2, taxa_reducao)
+            # Escolher aleatoriamente qual áudio começa primeiro
+            if random.random() < 0.5:
+                arq1, arq2 = arq2, arq1
+            
+            # Processar o overlap com taxa de redução específica
+            processar_overlap(arq1, arq2, pasta_overlap, label1, label2, taxa_reducao)
     
     # Criar pasta 'w' com overlaps aleatórios não utilizados
     if n > 0:
@@ -129,19 +133,25 @@ def criar_overlaps_aleatorios(arquivos_por_label, pasta_saida, arquivos_usados, 
     
     # Processar cada par selecionado
     for arq1, arq2 in pares_selecionados:
-        # Usar a label do segundo arquivo para determinar a taxa de redução
+        # Escolher aleatoriamente qual áudio começa primeiro
+        if random.random() < 0.5:
+            arq1, arq2 = arq2, arq1
+        
+        # Obter as labels dos arquivos
+        label1 = arquivos_por_arquivo[arq1]
         label2 = arquivos_por_arquivo[arq2]
-        processar_overlap(arq1, arq2, pasta_outros, label2, taxa_reducao)
+        processar_overlap(arq1, arq2, pasta_outros, label1, label2, taxa_reducao)
 
-def processar_overlap(arq1, arq2, pasta_destino, label2, taxa_reducao):
+def processar_overlap(arq1, arq2, pasta_destino, label1, label2, taxa_reducao):
     """
     Processa um único overlap entre dois arquivos de áudio com taxa de redução baseada na label
     
     Args:
         arq1 (str): Caminho do primeiro arquivo de áudio
-        arq2 (str): Caminho do segundo arquivo de áudio (será reduzido)
+        arq2 (str): Caminho do segundo arquivo de áudio
         pasta_destino (str): Pasta de destino para salvar os arquivos
-        label2 (str): Label do segundo arquivo (para determinar taxa de redução)
+        label1 (str): Label do primeiro arquivo
+        label2 (str): Label do segundo arquivo
         taxa_reducao (dict): Dicionário com taxas de redução por label
     """
     try:
@@ -149,22 +159,55 @@ def processar_overlap(arq1, arq2, pasta_destino, label2, taxa_reducao):
         audio1 = AudioSegment.from_wav(arq1)
         audio2 = AudioSegment.from_wav(arq2)
         
-        # Verificar se deve aplicar redução para esta label
-        if label2 in taxa_reducao and taxa_reducao[label2] is not None:
-            taxa_reducao_min, taxa_reducao_max = taxa_reducao[label2]
-            # Gerar taxa de redução aleatória dentro da faixa especificada
-            taxa_red = random.uniform(taxa_reducao_min, taxa_reducao_max)
-            # Reduzir a amplitude do segundo áudio
-            reducao_db = 20 * np.log10(taxa_red)  # Conversão linear para dB
-            audio2 = audio2 + reducao_db
-            taxa_str = f"{taxa_red:.3f}".replace('.', 'p')  # Usar a taxa específica com 3 casas decimais
-        else:
-            # Não aplicar redução
-            taxa_str = "noReduc"
-        
-        # Calcular a duração necessária para cobrir ambos os áudios
         duracao1 = len(audio1)
         duracao2 = len(audio2)
+        
+        # Determinar qual áudio será reduzido baseado nas regras específicas
+        reduzir_audio1 = False
+        reduzir_audio2 = False
+        label_para_reducao = None
+        
+        if label1 == label2:
+            # Mesmo label: aplicar regras específicas
+            if label1 == "l":
+                # Para "l", reduzir o de menor duração
+                if duracao1 < duracao2:
+                    reduzir_audio1 = True
+                    label_para_reducao = label1
+                else:
+                    reduzir_audio2 = True
+                    label_para_reducao = label2
+            elif label1 == "p":
+                # Para "p", reduzir o de maior duração
+                if duracao1 > duracao2:
+                    reduzir_audio1 = True
+                    label_para_reducao = label1
+                else:
+                    reduzir_audio2 = True
+                    label_para_reducao = label2
+            else:
+                # Para outros pares iguais, usar a lógica antiga (reduzir audio2)
+                reduzir_audio2 = True
+                label_para_reducao = label2
+        else:
+            # Labels diferentes: reduzir audio2 (lógica original)
+            reduzir_audio2 = True
+            label_para_reducao = label2
+        
+        # Aplicar redução ao áudio escolhido
+        taxa_str = "noReduc"
+        if label_para_reducao and label_para_reducao in taxa_reducao and taxa_reducao[label_para_reducao] is not None:
+            taxa_reducao_min, taxa_reducao_max = taxa_reducao[label_para_reducao]
+            # Gerar taxa de redução aleatória dentro da faixa especificada
+            taxa_red = random.uniform(taxa_reducao_min, taxa_reducao_max)
+            reducao_db = 20 * np.log10(taxa_red)  # Conversão linear para dB
+            
+            if reduzir_audio1:
+                audio1 = audio1 + reducao_db
+            elif reduzir_audio2:
+                audio2 = audio2 + reducao_db
+            
+            taxa_str = f"{taxa_red:.3f}".replace('.', 'p')  # Usar a taxa específica com 3 casas decimais
         
         # Escolher ponto de início aleatório para sobreposição (dentro do primeiro áudio)
         max_inicio = duracao1 - 1  # Garante pelo menos 1ms de sobreposição
@@ -232,20 +275,22 @@ def gerar_espectrograma(caminho_audio, pasta_saida, nome_base):
         print(f"Erro ao gerar espectrograma para {nome_base}: {str(e)}")
 
 if __name__ == "__main__":
-    pares_desejados = [["l", "l"], ["p", "p"], ["k", "p"]]
+    # pares_desejados = [["l", "l"], ["p", "p"], ["k", "p"]]
+    pares_desejados = [["p", "r_plus"]]
     
     # Definir taxas de redução por label
     taxas_reducao = {
-        "p": (0.15, 0.2),
-        "l": (0.7, 0.8),
-        "k": (0.6, 0.7)
+        "p": (0.1, 0.2),
+        "l": (0.6, 0.7),
+        "k": (0.6, 0.7),
+        "r_plus": (0.6, 0.7)
         # Labels não incluídas ou com valor None não terão redução aplicada
     }
     
     criar_pares_com_overlap_e_espectrograma(
         'J:\\croped_vocal_adult_baby', 
-        'J:\\overlap_especificos_adult_baby', 
+        'H:\\Users\\Firmino\\croped_vocal_overlap', 
         pares_desejados, 
         taxa_reducao=taxas_reducao,
-        n=1000
+        n=1500
     )

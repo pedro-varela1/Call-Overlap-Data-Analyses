@@ -306,8 +306,8 @@ def obter_segmento_background_aleatorio(arquivos_background, duracao_ms):
 
 if __name__ == "__main__":
     criar_audios_60s(
-        pasta_overlaps='J:\\overlap_especificos_adult_baby',
-        pasta_background='J:\\croped_vocal_adult_baby\\u',
-        pasta_saida='J:\\audios_60s_adult_baby',
-        n_vocalizacoes=1000
+        pasta_overlaps='H:\\Users\\Firmino\\croped_vocal_overlap',
+        pasta_background='H:\\Users\\Firmino\\croped_vocal_aves\\u',
+        pasta_saida='H:\\Users\\Firmino\\croped_audios_60s',
+        n_vocalizacoes=1500
     )

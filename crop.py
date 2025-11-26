@@ -165,8 +165,10 @@ def cortar_background(pasta_entrada, pasta_saida):
             continue
 
 if __name__ == "__main__":
-    cortar_audios(r"C:\Users\EthogenesisLab\Downloads\Feitos_Feitos-20251005T222933Z-1-001\Feitos_Feitos",
-                  r"J:\\croped_vocal_adult",
-                  ['p', 'l', 'k', 'g', 'r', 'e', 's'])
-    cortar_background(r"C:\Users\EthogenesisLab\Downloads\Feitos_Feitos-20251005T222933Z-1-001\Feitos_Feitos",
-                      r"J:\\croped_vocal_adult")
+    # cortar_audios(r"J:\ALL_DATA",
+    #               r"H:\Users\Firmino\croped_vocal_aves",
+    #               ['a', 'c', 'e', 'g', 'h', 'k', 'l', 'o', 'p', 'r', 's', 'y', 'z'])
+    cortar_background(r"J:\ALL_DATA",
+                      r"H:\Users\Firmino\croped_vocal_aves")
+    
+    # a, c, e, g, h, k, l, o, p, r, s, y, z 
