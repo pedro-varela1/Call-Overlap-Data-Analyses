@@ -1,0 +1,26 @@
+Input folder: H:\\Users\\Firmino\\croped_calls_train
+Output directory: ./data
+Labels: ['a', 'c', 'e', 'g', 'h', 'k', 'l', 'o', 'p', 'r', 's', 'y', 'z', 'm', 'n', 'v', 'w']
+Train ratio: 0.85
+Sample rate: 48000 Hz
+
+Processing already cut vocalization files...
+Label 'a': 437 train, 78 test
+Label 'c': 322 train, 57 test
+Label 'e': 315 train, 56 test
+Label 'g': 262 train, 47 test
+Label 'h': 49 train, 9 test
+Label 'k': 708 train, 125 test
+Label 'l': 2290 train, 405 test
+Label 'o': 500 train, 89 test
+Label 'p': 2743 train, 485 test
+Label 'r': 2253 train, 398 test
+Label 's': 777 train, 138 test
+Label 'y': 585 train, 104 test
+Label 'z': 708 train, 125 test
+Label 'm': 1275 train, 225 test
+Label 'n': 1275 train, 225 test
+Label 'v': 1292 train, 228 test
+Label 'w': 1275 train, 225 test
+
+Processing complete!
