@@ -1,0 +1,10 @@
+EXISTING:
+
+Encontrados 58 arquivos de áudio
+Duração total dos áudios: 16451.47 segundos (274.19 minutos)
+Total de vocalizações: 16685
+
+--------------------------------------------------------------
+
+
+ALL (EXISTING + CREATED)

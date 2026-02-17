@@ -146,7 +146,8 @@ def obter_label_do_caminho(caminho_vocalizacao):
         'll': 'v',  # ll -> v
         'kp': 'n',  # kp -> n
         'pk': 'n',  # pk -> n
-        'w': 'w'    # outros -> w (se houver)
+        'pr': 'w',  # pr -> w
+        'rp': 'w'   # rp -> w
     }
     
     return mapeamento_labels.get(pasta_pai, 'u')  # 'u' como fallback

@@ -216,10 +216,10 @@ def plotar_graficos(contagem_labels, duracoes_medias, duracoes_por_label):
         autotext.set_fontweight('bold')
     
     plt.tight_layout()
-    plt.show()
     
     # Salvar gráfico
     plt.savefig('analise_vocalizacoes.png', dpi=300, bbox_inches='tight')
+    plt.show()
     print(f"\nGráfico salvo como 'analise_vocalizacoes.png'")
 
 def gerar_relatorio_detalhado(pasta_entrada, pasta_saida=None):
